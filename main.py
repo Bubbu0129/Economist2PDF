@@ -60,7 +60,7 @@ for opt, arg in opts:
     elif opt in ("-q", "--quiet"):
         verbosity = -1
 
-# Install proxy
+# install proxy
 if proxy_handler:
     opener = urllib.request.build_opener(proxy_handler)
 else:
@@ -72,18 +72,20 @@ urllib.request.install_opener(opener)
 urlArr = stdin.splitlines()
 
 def main(url):
-    # set html string
-    i = url.rindex('/')
+    
     req = urllib.request.Request(url)
     req.add_header('User-agent', user_agent)
     response = urllib.request.urlopen(req)
     response.readline()
     b = response.readline()
     data = json.loads(b.decode())
-    filename = url[(i+1):] + '_' + data['datePublished'][:10] + ".pdf"
-    headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
     body = data['articleBody'].split('\n')
     urllib.request.urlretrieve(data['thumbnailUrl'], "/tmp/thumbnail.png")
+
+    i = url.rindex('/')
+    filename = url[(i+1):] + '_' + data['datePublished'][:10] + ".pdf"
+    headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
+    
     html = "<h1>" + data['headline'] + "</h1>"
     html += "<font face=\"" + fontI_name + "\" size=16><p line-height=2>" + data['description'] + "</p></font>"
     if not text_only:
