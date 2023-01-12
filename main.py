@@ -9,13 +9,12 @@ fontI_name  = "MiloTE-I"
 
 user_agent  = "Mozilla/5.0"
 
-import sys, getopt
-import urllib.request, json
+import sys, getopt, re, urllib.request, json
 from datetime import datetime
 from fpdf import FPDF
 
 # getopt
-def usage(filename):
+def usage(name):
     print("""Usage: %s [OPTIONS]
 The program converts articles on the Economist to PDF.
 It reads URLs from <stdin> in format "<URL>\\n<URL>\\n<URL>\\n..."
@@ -27,7 +26,7 @@ Options:
     -v, --verbose       Print user-friendly message
     -q, --quiet         Redirect <stdout>
     -h, --help          Show help message
-""" % (filename), end="")
+""" % (name), end="")
 
 stdin = sys.stdin.read()
 argv = sys.argv
@@ -40,7 +39,7 @@ try:
     opts, args = getopt.getopt(argv[1:], \
             "d:p:tvqh", ["dir=","http-proxy=", "text-only", "url-prefix=", "verbose", "quiet", "help"])
 except getopt.GetoptError as err:
-    print (err)
+    print(err)
     usage(argv[0])
     exit()
 for opt, arg in opts:
@@ -72,6 +71,10 @@ urllib.request.install_opener(opener)
 urlArr = stdin.splitlines()
 
 def main(url):
+
+    regex = r"^https:\/\/www\.economist\.com\/\w*\/\d{4}\/\d{2}\/\d{2}\/(.*)$"
+    subst = "\\1.pdf"
+    filename = re.sub(regex, subst, url, 1, re.MULTILINE)
     
     req = urllib.request.Request(url)
     req.add_header('User-agent', user_agent)
@@ -82,8 +85,6 @@ def main(url):
     body = data['articleBody'].split('\n')
     urllib.request.urlretrieve(data['thumbnailUrl'], "/tmp/thumbnail.png")
 
-    i = url.rindex('/')
-    filename = url[(i+1):] + '_' + data['datePublished'][:10] + ".pdf"
     headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
     
     html = "<h1>" + data['headline'] + "</h1>"
