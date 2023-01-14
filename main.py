@@ -72,9 +72,12 @@ urlArr = stdin.splitlines()
 
 def main(url):
 
-    regex = r"^https:\/\/www\.economist\.com\/\w*\/\d{4}\/\d{2}\/\d{2}\/(.*)$"
+    regex = r"^https:\/\/www\.economist\.com\/.*\/\d{4}\/\d{2}\/\d{2}\/(.*?)(\?.*)??$"
+    pattern = re.compile(regex)
+    if not pattern.fullmatch(url):
+        return "";
     subst = "\\1.pdf"
-    filename = re.sub(regex, subst, url, 1, re.MULTILINE)
+    filename = pattern.sub(subst, url)
     
     req = urllib.request.Request(url)
     req.add_header('User-agent', user_agent)
