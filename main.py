@@ -11,7 +11,7 @@ user_agent  = "Mozilla/5.0"
 
 import sys, getopt, re, urllib.request, json
 from datetime import datetime
-from fpdf import FPDF
+import fpdf
 
 # getopt
 def usage(name):
@@ -89,28 +89,28 @@ def main(url):
     urllib.request.urlretrieve(data['thumbnailUrl'], "/tmp/thumbnail.png")
 
     headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
-    
-    html = "<h1>" + data['headline'] + "</h1>"
-    html += "<font face=\"" + fontI_name + "\" size=16><p line-height=2>" + data['description'] + "</p></font>"
+
+    html = "<h1>%s</h1>" % (data["headline"],)
+    html += "<font face=\"%s\" size=16><p line-height=2>%s</p></font>" % (fontI_name, data["description"])
     if not text_only:
-        html += "<p align=R><font color=#0000ff><u><a href=\"" + data['url'] + "\">Webpage</a></u></font></p>"
+        html += "<p align=R><font color=#0000ff><u><a href=\"%s\">Webpage</a></u></font></p>" % (data["url"],)
         html += "<img src=\"/tmp/thumbnail.png\" width=538>"    # pixel width of an A4 page
     for line in body:
-        html +=( "<p line-height=1.5>" + line + "</p>")
+        html += "<p line-height=1.5>%s</p>" % (line,)
         if not line:
             continue
         if (line[-1] == '■'):
             break
 
     # generate PDF by html
-    pdf = FPDF()
+    pdf = fpdf.FPDF()
     pdf.add_font(font_name,'',font_file)
     pdf.add_font(fontI_name,'',fontI_file)
     pdf.set_font(font_name)
     pdf.set_title(headline_ascii)
     pdf.set_author(data['author']['name'])
     pdf.set_creator(data['creator']['name'])
-    pdf.set_producer(data['publisher']['name'])
+    pdf.set_producer("fpdf2 " + fpdf.FPDF_VERSION)
     pdf.set_creation_date(datetime.strptime(data['dateCreated'], "%Y-%m-%dT%H:%M:%SZ"))
     pdf.set_lang(data['inLanguage'])
     pdf.set_keywords(data['keywords'])
