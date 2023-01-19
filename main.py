@@ -72,7 +72,7 @@ urlArr = stdin.splitlines()
 
 def main(url):
 
-    regex = r"^https:\/\/www\.economist\.com\/(.*)\/(\d{4})\/(\d{2})\/(\d{2})\/(.*?)(?=\?|\Z)"
+    regex = r"^https:\/\/www\.economist\.com\/(.*)\/(\d{4})\/(\d{2})\/(\d{2})\/(.*?)(?=\?|\Z).*"
     pattern = re.compile(regex)
     if not pattern.fullmatch(url):
         return ""
