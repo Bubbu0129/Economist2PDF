@@ -31,7 +31,7 @@ Options:
 stdin = sys.stdin.read()
 argv = sys.argv
 proxy_handler = None
-directory = ""
+base_dir = ""
 text_only = False
 url_prefix = ""
 verbosity = 0
@@ -47,13 +47,13 @@ for opt, arg in opts:
         usage(argv[0])
         sys.exit(0)
     elif opt in ("-d", "--dir"):
-        directory = arg
+        base_dir = arg if arg.endswith('/') else (arg + '/')
     elif opt in ("-p", "--http-proxy"):
         proxy_handler = urllib.request.ProxyHandler({"http": arg, "https": arg})
     elif opt in ("-t", "--text-only"):
         text_only = True
     elif opt in ("--url-prefix"):
-        url_prefix = arg
+        url_prefix = arg if arg.endswith('/') else (arg + '/')
     elif opt in ("-v", "--verbose"):
         verbosity = 1
     elif opt in ("-q", "--quiet"):
@@ -72,13 +72,14 @@ urlArr = stdin.splitlines()
 
 def main(url):
 
-    regex = r"^https:\/\/www\.economist\.com\/.*\/\d{4}\/\d{2}\/\d{2}\/(.*?)(\?.*)??$"
+    regex = r"^https:\/\/www\.economist\.com\/(.*)\/(\d{4})\/(\d{2})\/(\d{2})\/(.*?)(?=\?|\Z)"
     pattern = re.compile(regex)
     if not pattern.fullmatch(url):
-        return "";
-    subst = "\\1.pdf"
-    filename = pattern.sub(subst, url)
-    
+        return ""
+    cat_dir = pattern.sub("\\1/", url)
+    filename = pattern.sub("\\5_\\2-\\3-\\4.pdf", url)
+    Path(base_dir + cat_dir).mkdir(parents=True, exist_ok=True)
+
     req = urllib.request.Request(url)
     req.add_header('User-agent', user_agent)
     response = urllib.request.urlopen(req)
@@ -117,9 +118,9 @@ def main(url):
     pdf.set_subject(data['articleSection'])
     pdf.add_page()
     pdf.write_html(html)
-    pdf.output(directory + filename)
+    pdf.output(base_dir + cat_dir + filename)
 
-    return (url_prefix + filename)
+    return (url_prefix + cat_dir + filename)
 
 if __name__ == "__main__":
     if not urlArr:
