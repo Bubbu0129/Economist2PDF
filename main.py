@@ -84,7 +84,7 @@ def main(url):
     data = json.loads(content[1].decode())
     body = data['articleBody'].split('\n')
     date = datetime.strptime(data['datePublished'], "%Y-%m-%dT%H:%M:%SZ")
-    subheadline = re.search(r"\"shareSnippet\":\"(.*) –", content[-2].decode()).group(1)
+    subheadline = re.search(r"<!-- -->(.*)<", content[18].decode()).group(1)
     urllib.request.urlretrieve(data['thumbnailUrl'], "/tmp/thumbnail.png")
 
     headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
