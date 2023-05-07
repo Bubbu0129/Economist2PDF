@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 import fpdf
 
-# getopt
+# Input: getopt
 def usage(name):
     print("""Usage: %s [OPTIONS]
 The program converts articles on the Economist to PDF. 
@@ -37,7 +37,7 @@ text_only = False
 verbosity = 0
 try:
     opts, args = getopt.getopt(argv[1:], \
-            "d:p:tvqh", ["dir=","http-proxy=", "text-only", "url-prefix=", "verbose", "quiet", "help"])
+            "d:p:tvqh", ["dir=","http-proxy=", "text-only", "verbose", "quiet", "help"])
 except getopt.GetoptError as err:
     print(err)
     usage(argv[0])
@@ -57,7 +57,7 @@ for opt, arg in opts:
     elif opt in ("-q", "--quiet"):
         verbosity = -1
 
-# install proxy
+# Install proxy
 if proxy_handler:
     opener = urllib.request.build_opener(proxy_handler)
 else:
@@ -65,7 +65,7 @@ else:
 opener.addheaders = [('User-Agent', user_agent)]
 urllib.request.install_opener(opener)
 
-# fetch html & generate PDF
+# Regex
 urlArr = stdin.splitlines()
 regex = r"^https:\/\/www\.economist\.com\/(.*)\/(\d{4})\/(\d{2})\/(\d{2})\/(.*?)(?=\?|\Z).*"
 pattern = re.compile(regex)
@@ -78,32 +78,37 @@ def main(url):
     filename = pattern.sub("\\5_\\2-\\3-\\4.pdf", url)
     Path(base_dir + cat_dir).mkdir(parents=True, exist_ok=True)
 
+    # Request
     req = urllib.request.Request(url)
     req.add_header('User-agent', user_agent)
     content = urllib.request.urlopen(req).readlines()
+    subheadline = re.search(r" \| <!-- -->(.*?)<", content[18].decode()).group(1)
     data = json.loads(content[1].decode())
     body = data['articleBody'].split('\n')
     date = datetime.strptime(data['datePublished'], "%Y-%m-%dT%H:%M:%SZ")
-    subheadline = re.search(r"<!-- -->(.*)<", content[18].decode()).group(1)
-    urllib.request.urlretrieve(data['thumbnailUrl'], "/tmp/thumbnail.png")
-
     headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
+    if text_only:
+        headline_ascii += "(Text Only)"
+    # Retrieve Thumbnail
+    urllib.request.urlretrieve(data['thumbnailUrl'], "thumbnail.png")
 
+    # Compose HTML string
     html = str()
     html += "<h1>%s</h1>" % (data["headline"],)
     html += "<font face=\"%s\" size=16><p line-height=2>%s</p></font>" % (fontI_name, data["description"])
     html += "<p align=\"right\">Published on %s</p>" % (date.strftime("%b %d %Y, %I:%M %p"))
     if text_only:
-#        html += "<p>---------------------------------------------------------------------------------------------------------------------------</p>"
+        #html += "<p>---------------------------------------------------------------------------------------------------------------------------</p>"
         pass
     else:
-        html += "<img src=\"/tmp/thumbnail.png\" width=538>"    # pixel width of an A4 page
+        html += "<img src=\"thumbnail.png\" width=538>"    # pixel width of an A4 page
     for line in body:
         if (line and line[-1] == '■'):
             html += "<p line-height=1.5>%s</p>" % (line[:-1],)
             break
         html += "<p line-height=1.5>%s</p>" % (line,)
 
+    # Initialize PDF
     class PDF(fpdf.FPDF):
         def header(self):
             self.image(icon, 10, 10, 20, link="https://www.economist.com/")
@@ -115,7 +120,7 @@ def main(url):
             self.set_y(-15)
             self.cell(0, 10, f"{self.page_no()}/{{nb}}", align="R")
 
-    # generate PDF by html
+    # Generate PDF
     pdf = PDF()
     pdf.add_font(font_name,'',font_file)
     pdf.add_font(fontI_name,'',fontI_file)
