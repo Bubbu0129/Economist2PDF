@@ -8,6 +8,14 @@ fontI_file  = "assets/MiloTE-inclined.ttf"
 font_name   = "MiloTE"
 fontI_name  = "MiloTE-I"
 
+economist_icon  = "assets/economist.png"
+audio_icon      = "assets/audio.png"
+font_path       = "assets/MiloTE.ttf"
+fontI_path      = "assets/MiloTE-inclined.ttf"
+fallback_font   = "assets/Courier.otf"
+font_name       = "MiloTE"
+fontI_name      = "MiloTE-I"
+
 user_agent  = "Mozilla/5.0"
 
 import sys, getopt, re, urllib.request, json
@@ -83,6 +91,10 @@ def main(url):
     req.add_header('User-agent', user_agent)
     content = urllib.request.urlopen(req).readlines()
     subheadline = re.search(r" \| <!-- -->(.*?)<", content[18].decode()).group(1)
+    audio = re.search(r"<audio .*? src=\"(.*?)\" title=\"(.*?)\"", content[20].decode())
+    if audio is not None:
+        audio_link = audio.group(1)
+        audio_alt = audio.group(2)
     data = json.loads(content[1].decode())
     body = data['articleBody'].split('\n')
     date = datetime.strptime(data['datePublished'], "%Y-%m-%dT%H:%M:%SZ")
@@ -111,20 +123,24 @@ def main(url):
     # Initialize PDF
     class PDF(fpdf.FPDF):
         def header(self):
-            self.image(icon, 10, 10, 20, link="https://www.economist.com/")
+            self.image(icon, 10, 10, 20, link="https://www.economist.com/", alt_text="The Economist")
             self.cell(0, 10, "%s | %s" % (data['articleSection'], subheadline), align="R", link=data["url"])
             # Line Break:
             self.ln(16)
 
         def footer(self):
-            self.set_y(-15)
-            self.cell(0, 10, f"{self.page_no()}/{{nb}}", align="R")
+            self.set_y(-16)
+            if audio is not None:
+                self.image(audio_icon, 12, None, 6, link=audio_link, alt_text=audio_alt)
+            self.cell(0, -6, f"{self.page_no()}/{{nb}}", align="R")
 
     # Generate PDF
     pdf = PDF()
-    pdf.add_font(font_name,'',font_file)
-    pdf.add_font(fontI_name,'',fontI_file)
+    pdf.add_font(font_name,'',font_path)
+    pdf.add_font(fontI_name,'',fontI_path)
+    pdf.add_font(family="fallback", fname=fallback_font)
     pdf.set_font(font_name)
+    pdf.set_fallback_fonts(["fallback"])
     pdf.set_title(headline_ascii)
     pdf.set_author(data['author']['name'])
     pdf.set_creator(data['creator']['name'])
