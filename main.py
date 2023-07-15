@@ -90,8 +90,8 @@ def main(url):
     req = urllib.request.Request(url)
     req.add_header('User-agent', user_agent)
     content = urllib.request.urlopen(req).readlines()
-    subheadline = re.search(r" \| <!-- -->(.*?)<", content[18].decode()).group(1)
-    audio = re.search(r"<audio .*? src=\"(.*?)\" title=\"(.*?)\"", content[20].decode())
+    subheadline = re.search(r" \| <!-- -->(.*?)<", content[19].decode()).group(1)
+    audio = re.search(r"<audio .*? src=\"(.*?)\" title=\"(.*?)\"", content[21].decode())
     if audio is not None:
         audio_link = audio.group(1)
         audio_alt = audio.group(2)
