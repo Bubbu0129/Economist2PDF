@@ -4,7 +4,7 @@ Convert articles on the Economist to PDF
 **DISCLAIMER**: This program is FOR EDUCATIONAL PURPOSE ONLY. Do not distribute the output files, and immediately delete them after browsing.
 
 ```
-Usage: %s [OPTIONS]
+Usage: main.py [OPTIONS]
 The program converts articles on the Economist to PDF.
 It reads URLs from <stdin> in format "<URL>\n<URL>\n<URL>\n..."
 Options: 
