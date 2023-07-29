@@ -30,7 +30,7 @@ The program converts articles on the Economist to PDF.
 It reads URLs from <stdin> in format "<URL>\\n<URL>\\n<URL>\\n..."
 Options: 
     -d, --dir=          Local directory to store output file
-    -p, --http-proxy=   HTTP proxy to fetch article
+    -p, --http-proxy=   HTTP proxy to fetch article, e.g. `http://[username:password@]hostname:port`
     -t, --text-only     Output text-only PDF
     -v, --verbose       Print user-friendly message
     -q, --quiet         Redirect <stdout> to NULL
@@ -39,7 +39,7 @@ Options:
 
 stdin = sys.stdin.read()
 argv = sys.argv
-proxy_handler = None
+proxy_handler = urllib.request.ProxyHandler()
 base_dir = ""
 text_only = False
 verbosity = 0
@@ -66,10 +66,7 @@ for opt, arg in opts:
         verbosity = -1
 
 # Install proxy
-if proxy_handler:
-    opener = urllib.request.build_opener(proxy_handler)
-else:
-    opener = urllib.request.build_opener()
+opener = urllib.request.build_opener(proxy_handler, urllib.request.HTTPBasicAuthHandler())
 opener.addheaders = [('User-Agent', user_agent)]
 urllib.request.install_opener(opener)
 
