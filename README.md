@@ -6,7 +6,7 @@ Convert articles on the Economist to PDF
 <pre>
 Usage: main.py [OPTIONS]
 The program converts articles on the Economist to PDF.
-It reads URLs from \<stdin\> in format "\<URL\>\n\<URL\>\n\<URL\>\n..."
+It reads URLs from &lt;stdin&gt; in format "&lt;URL&gt;\n&lt;URL&gt;\n&lt;URL&gt;\n..."
 Options: 
     -d, --dir=          Local directory to store output file
     -p, --http-proxy=   HTTP proxy to fetch article, e.g. <i>http://[username:password@]hostname:port</i>
