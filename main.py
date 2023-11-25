@@ -93,7 +93,10 @@ def main(url):
         audio_alt = audio.group(2)
     data = json.loads(content[1].decode())
     body = data['articleBody'].split('\n')
-    date = datetime.strptime(data['datePublished'], "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        date = datetime.strptime(data['datePublished'], "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        date = datetime.strptime(data['datePublished'], "%Y-%m-%dT%H:%M:%S.%fZ")
     headline_ascii = data['headline'].encode("ascii", errors="ignore").decode() # Some Unicode characters cannot be stored in PDF's metadata
     if text_only:
         headline_ascii += "(Text Only)"
